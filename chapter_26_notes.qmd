@@ -1,0 +1,19 @@
+---
+title: "R for Data Science, 2nd Edition - Chapter 26 Notes"
+freeze: true
+format:
+    html:
+        toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+# 26 Iteration
+
+```{r}
+
+library(tidyverse)
+
+```
+
+

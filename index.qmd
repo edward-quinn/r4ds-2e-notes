@@ -8,4 +8,5 @@ bibliography: professional_development.bib
 
 *R for Data Science, 2nd edition* [@wickham_r_2023] can be found [here.](https://adv-r.hadley.nz/){.external target="_blank"}
 
--   [Chapter 5 Notes](chapter_01_notes.qmd){.external target="_blank"}
+-   [Chapter 5 Notes](chapter_05_notes.qmd){.external target="_blank"}
+-   [Chapter 26 Notes](chapter_26_notes.qmd){.external target="_blank"}

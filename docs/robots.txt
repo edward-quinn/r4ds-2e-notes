@@ -1,0 +1,1 @@
+Sitemap: https://edward-quinn.github.io/r4ds-2e-notes/sitemap.xml
