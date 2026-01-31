@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "R For Data Science, 2nd Edition Notebook",
     "section": "",
-    "text": "R for Data Science, 2nd edition (Wickham, Çetinkaya-Rundel, and Grolemund 2023) can be found here.\n\nChapter 5 Notes\n\n\n\n\n\nReferences\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. 2nd ed. O’Reilly Media."
+    "text": "R for Data Science, 2nd edition (Wickham, Çetinkaya-Rundel, and Grolemund 2023) can be found here.\n\nChapter 5 Notes\nChapter 26 Notes\n\n\n\n\n\nReferences\n\nWickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. R for Data Science. 2nd ed. O’Reilly Media."
   },
   {
     "objectID": "chapter_05_notes.html",
@@ -19,5 +19,12 @@
     "title": "R for Data Science, 2nd Edition - Chapter 5 Notes",
     "section": "",
     "text": "Use pivot_longer().\n\nbillboard |&gt; \n  pivot_longer(\n    cols = starts_with(\"wk\"), \n    names_to = \"week\", \n    values_to = \"rank\"\n  )\n\n# A tibble: 24,092 × 5\n   artist track                   date.entered week   rank\n   &lt;chr&gt;  &lt;chr&gt;                   &lt;date&gt;       &lt;chr&gt; &lt;dbl&gt;\n 1 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk1      87\n 2 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk2      82\n 3 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk3      72\n 4 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk4      77\n 5 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk5      87\n 6 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk6      94\n 7 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk7      99\n 8 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk8      NA\n 9 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk9      NA\n10 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk10     NA\n# ℹ 24,082 more rows\n\n#&gt; # A tibble: 24,092 × 5\n#&gt;    artist track                   date.entered week   rank\n#&gt;    &lt;chr&gt;  &lt;chr&gt;                   &lt;date&gt;       &lt;chr&gt; &lt;dbl&gt;\n#&gt;  1 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk1      87\n#&gt;  2 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk2      82\n#&gt;  3 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk3      72\n#&gt;  4 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk4      77\n#&gt;  5 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk5      87\n#&gt;  6 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk6      94\n#&gt;  7 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk7      99\n#&gt;  8 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk8      NA\n#&gt;  9 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk9      NA\n#&gt; 10 2 Pac  Baby Don't Cry (Keep... 2000-02-26   wk10     NA\n#&gt; # ℹ 24,082 more rows\n\n\ncols specifies which columns need to be pivoted, i.e. which columns aren’t variables. This argument uses the same syntax as select() so here we could use !c(artist, track, date.entered) or starts_with(“wk”).\nnames_to names the variable stored in the column names, we named that variable week.\nvalues_to names the variable stored in the cell values, we named that variable rank."
+  },
+  {
+    "objectID": "chapter_26_notes.html",
+    "href": "chapter_26_notes.html",
+    "title": "R for Data Science, 2nd Edition - Chapter 26 Notes",
+    "section": "",
+    "text": "26 Iteration\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.6\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.1     ✔ tibble    3.3.1\n✔ lubridate 1.9.4     ✔ tidyr     1.3.2\n✔ purrr     1.2.1     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors"
   }
 ]
