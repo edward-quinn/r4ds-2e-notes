@@ -1,0 +1,11 @@
+---
+title: R For Data Science, 2nd Edition Notebook
+author: Edward B. Quinn, PhD, MPH
+bibliography: professional_development.bib
+---
+
+
+
+*R for Data Science, 2nd edition* [@wickham_r_2023] can be found [here.](https://adv-r.hadley.nz/){.external target="_blank"}
+
+-   [Chapter 5 Notes](chapter_01_notes.qmd){.external target="_blank"}
