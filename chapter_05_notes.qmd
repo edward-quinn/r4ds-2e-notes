@@ -214,6 +214,7 @@ household |>
 ```
 
 
+
 ## 5.4 Widening data
 
 Use `pivot_wider()` to increase columns and reduce rows.
