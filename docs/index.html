@@ -154,10 +154,10 @@ div.csl-indent {
 </header>
 
 
-<p><em>R for Data Science, 2nd edition</em> <span class="citation" data-cites="wickham_r_2023">(<a href="#ref-wickham_r_2023" role="doc-biblioref">Wickham, Çetinkaya-Rundel, and Grolemund 2023</a>)</span> can be found <a href="https://adv-r.hadley.nz/" class="external" target="_blank">here.</a></p>
+<p><em>R for Data Science, 2nd edition</em> <span class="citation" data-cites="wickham_r_2023">(<a href="#ref-wickham_r_2023" role="doc-biblioref">Wickham, Çetinkaya-Rundel, and Grolemund 2023</a>)</span> can be found <a href="https://r4ds.hadley.nz/" class="external" target="_blank">here.</a></p>
 <ul>
 <li><a href="./chapter_05_notes.html" class="external" target="_blank">Chapter 5 Notes</a></li>
-<li><a href="./chapter_26_notes.html" class="external" target="_blank">Chapter 26 Notes</a></li>
+<li><a href="./chapter_25_notes.html" class="external" target="_blank">Chapter 25 Notes</a></li>
 </ul>
 
 
@@ -241,7 +241,7 @@ Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for 
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/edward-quinn\.github\.io\/r4ds-2e-notes\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
