@@ -929,3 +929,10 @@ Now use `walk2()` again:
 
 
 ```
+
+```{r}
+
+by_clarity
+
+```
+
