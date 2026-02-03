@@ -1,0 +1,15 @@
+{
+  "hash": "b1cbaea6931152d9a080a13f4309da97",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"R for Data Science, 2nd Edition - Chapter 10 Notes\"\nfreeze: true\nformat:\n    html:\n        toc: true\neditor_options: \n  chunk_output_type: console\n---\n\n\n\n# Exploratory data analysis\n\n\n::: {.cell}\n\n:::\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

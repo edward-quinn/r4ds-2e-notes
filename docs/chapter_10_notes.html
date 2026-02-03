@@ -6,9 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Edward B. Quinn, PhD, MPH">
 
-<title>R For Data Science, 2nd Edition Notebook – Edward’s Notes on R for Data Science, 2nd Edition</title>
+<title>R for Data Science, 2nd Edition - Chapter 10 Notes – Edward’s Notes on R for Data Science, 2nd Edition</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,27 +20,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-  margin-bottom: 0em;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -93,7 +72,7 @@ div.csl-indent {
 
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -111,7 +90,7 @@ div.csl-indent {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
 </ul>
@@ -125,25 +104,27 @@ div.csl-indent {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis" class="nav-link active" data-scroll-target="#exploratory-data-analysis">Exploratory data analysis</a></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">R For Data Science, 2nd Edition Notebook</h1>
+<h1 class="title">R for Data Science, 2nd Edition - Chapter 10 Notes</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Edward B. Quinn, PhD, MPH </p>
-          </div>
-  </div>
     
   
     
@@ -154,23 +135,13 @@ div.csl-indent {
 </header>
 
 
-<p><em>R for Data Science, 2nd edition</em> <span class="citation" data-cites="wickham_r_2023">(<a href="#ref-wickham_r_2023" role="doc-biblioref">Wickham, Çetinkaya-Rundel, and Grolemund 2023</a>)</span> can be found <a href="https://r4ds.hadley.nz/" class="external" target="_blank">here.</a></p>
-<ul>
-<li><a href="./chapter_05_notes.html" class="external" target="_blank">Chapter 5 Notes</a></li>
-<li><a href="./chapter_09_notes.html" class="external" target="_blank">Chapter 9 Notes</a></li>
-<li><a href="./chapter_12_notes.html" class="external" target="_blank">Chapter 12 Notes</a></li>
-<li><a href="./chapter_25_notes.html" class="external" target="_blank">Chapter 25 Notes</a></li>
-<li><a href="./chapter_26_notes.html" class="external" target="_blank">Chapter 26 Notes</a></li>
-</ul>
+<section id="exploratory-data-analysis" class="level1">
+<h1>Exploratory data analysis</h1>
 
 
+</section>
 
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-wickham_r_2023" class="csl-entry" role="listitem">
-Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for <span>Data</span> <span>Science</span></em>. 2nd ed. O’Reilly Media.
-</div>
-</div></section></div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -244,7 +215,7 @@ Wickham, Hadley, Mine Çetinkaya-Rundel, and Garrett Grolemund. 2023. <em>R for 
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/edward-quinn\.github\.io\/r4ds-2e-notes\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

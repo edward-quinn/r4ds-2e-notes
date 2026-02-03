@@ -295,8 +295,112 @@ ggplot(diamonds) +
 
 ## 9.6 Position adjustments
 
+You can add color to the edges or the fill like so:
+
 ```{r}
 
+
+# Left
+ggplot(mpg, aes(x = drv, color = drv)) + 
+  geom_bar()
+
+# Right
+ggplot(mpg, aes(x = drv, fill = drv)) + 
+  geom_bar()
+
+```
+
+
+Mapping the `fill` aesthetic to another variable results in automatic stacking of bar charts.
+
+
+```{r}
+
+ggplot(mpg, aes(x = drv, fill = class)) + 
+  geom_bar()
+
+```
+
+
+This automatic stacking is accomplished with **position adjustment** using the `position` argument. If you don't want a stacked bar chart, you can use one of three other options: `"identity"`, `"dodge"`, or `"fill"`.
+
+`"identity"` will place each object exactly where it falls in the context of the graph.
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = drv, fill = class)) + 
+  geom_bar(alpha = 1/5, position = "identity")
+
+# Right
+ggplot(mpg, aes(x = drv, color = class)) + 
+  geom_bar(fill = NA, position = "identity")
+
+```
+
+
+`position = "fill"` works like stacking, but makes each bar the same height. Easier to compare proportions.
+
+`position = "dodge"` places overlapping objects directly *beside* one another.
+
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = drv, fill = class)) + 
+  geom_bar(position = "fill")
+
+# Right
+ggplot(mpg, aes(x = drv, fill = class)) + 
+  geom_bar(position = "dodge")
+
+```
+
+
+What about **overplotting**? Use `position = "jitter"`. This is most useful with a scatter plot.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(position = "jitter")
+
+```
+
+
+
+## 9.7 Coordinate systems
+
+
+Maps. `coord_quickmap()` sets the aspect ratio for maps.
+
+```{r}
+
+nz <- map_data("nz")
+
+ggplot(nz, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black")
+
+ggplot(nz, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "black") +
+  coord_quickmap()
+
+```
+
+`coord_polar()` uses polar coordinates. Polar coordinates reveal an interesting connection between a bar chart and a Coxcomb chart.
+
+
+```{r}
+
+bar <- ggplot(data = diamonds) + 
+  geom_bar(
+    mapping = aes(x = clarity, fill = clarity), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1)
+
+bar + coord_flip()
+bar + coord_polar()
 
 ```
 
@@ -305,65 +409,24 @@ ggplot(diamonds) +
 
 ```{r}
 
-
-
-```
-
-
-
-```{r}
-
-
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
 
 ```
 
 
 
 
-```{r}
+## 9.8 The layered grammar of graphics
 
 
-
-```
-
-
-
-```{r}
-
-
-
-```
-
-
-
-```{r}
-
-
-
-```
-
-
-
-```{r}
-
-
-
-```
-
-
-
-
-```{r}
-
-
-
-```
-
-
-
-```{r}
-
-
-
-```
-
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(
+     mapping = aes(<MAPPINGS>),
+     stat = <STAT>, 
+     position = <POSITION>
+  ) +
+  <COORDINATE_FUNCTION> +
+  <FACET_FUNCTION>
