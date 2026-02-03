@@ -1,0 +1,369 @@
+---
+title: "R for Data Science, 2nd Edition - Chapter 9 Notes"
+freeze: true
+format:
+    html:
+        toc: true
+editor_options: 
+  chunk_output_type: console
+---
+
+# 9 Layers
+
+```{r}
+
+library(tidyverse)
+
+```
+
+## 9.2 Aesthetic mappings
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) +
+  geom_point()
+
+# Right
+ggplot(mpg, aes(x = displ, y = hwy, shape = class)) +
+  geom_point()
+#> Warning: The shape palette can deal with a maximum of 6 discrete values because more
+#> than 6 becomes difficult to discriminate
+#> ℹ you have requested 7 values. Consider specifying shapes manually if you
+#>   need that many of them.
+#> Warning: Removed 62 rows containing missing values or values outside the scale range
+#> (`geom_point()`).
+
+```
+
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = displ, y = hwy, size = class)) +
+  geom_point()
+#> Warning: Using size for a discrete variable is not advised.
+
+# Right
+ggplot(mpg, aes(x = displ, y = hwy, alpha = class)) +
+  geom_point()
+#> Warning: Using alpha for a discrete variable is not advised.
+
+```
+
+Arguments outside of `aes()` do not map onto variables to determine appearance.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(color = "blue")
+
+```
+
+
+## 9.3 Geometric objects
+
+
+Same data, different geoms:
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point()
+
+# Right
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_smooth()
+#> `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+```
+
+Not every aesthetic works with every geom. You can't set the `shape` or a line geom.
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = displ, y = hwy, shape = drv)) + 
+  geom_smooth()
+
+# Right
+ggplot(mpg, aes(x = displ, y = hwy, linetype = drv)) + 
+  geom_smooth()
+
+```
+
+Instead of giving a shape to a line geom, ggplot split the lines by `drv`.
+
+For geoms that produce a single geometric object, you can use the `group` aesthetic to draw multiple objects. Note that the `group` aesthetic does not add a legend or distinguishing features to the geoms.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() +
+  geom_smooth(aes(linetype = drv))
+
+```
+
+Placing mappings in a geom function overwrites the global mappings for that layer only. This means you can have different aesthetics in different layers.
+
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = class)) + 
+  geom_smooth()
+
+```
+
+You can use this idea to specify different data for each layer.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_point(
+    data = mpg |> filter(class == "2seater"), 
+    color = "red"
+  ) +
+  geom_point(
+    data = mpg |> filter(class == "2seater"), 
+    shape = "circle open", size = 3, color = "red"
+  )
+
+```
+
+
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = hwy)) +
+  geom_histogram(binwidth = 2)
+
+# Middle
+ggplot(mpg, aes(x = hwy)) +
+  geom_density()
+
+# Right
+ggplot(mpg, aes(x = hwy)) +
+  geom_boxplot()
+
+```
+
+
+
+## 9.4 Facets
+
+
+`facet_wrap()` splits a plot into subplots that each display one subset of the data based on a categorical variable.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  facet_wrap(~cyl)
+
+```
+
+
+To facet with a combination of two variables, switch to `facet_grid()`.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  facet_grid(drv ~ cyl)
+
+```
+
+
+Let the x and y axes vary across plots with `scales = "free"`.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  facet_grid(drv ~ cyl, scales = "free")
+
+```
+
+Use the `.` to facet horizontally?
+
+```{r}
+
+ggplot(mpg) + 
+  geom_point(aes(x = displ, y = hwy)) +
+  facet_grid(drv ~ .)
+
+
+```
+
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ)) + 
+  geom_histogram() + 
+  facet_grid(drv ~ .)
+
+ggplot(mpg, aes(x = displ)) + 
+  geom_histogram() + 
+  facet_wrap(~drv)
+
+ggplot(mpg, aes(x = displ)) + 
+  geom_histogram() +
+  facet_grid(. ~ drv)
+
+
+
+```
+
+
+
+## 9.5 Statistical transformations
+
+When new values have to be calculated for the plot.
+
+-   Bar charts, histograms, and frequency polygons bin your data and then plot bin counts, the number of points that fall in each bin.
+
+-   Smoothers fit a model to your data and then plot predictions from the model.
+
+-   Boxplots compute the five-number summary of the distribution and then display that summary as a specially formatted box.
+
+```{r}
+
+ggplot(diamonds, aes(x = cut)) + 
+  geom_bar()
+
+```
+
+The algorithm used to calculate new values for a graph is called a **stat**, short for statistical transformation.
+
+You can see which stat a geom uses by looking at default arguments, and the documentation for a given stat can be found on the geom help page. See how `stat_count()` is documented on the `geom_bar()` help page.
+
+Every geom has a default stat, and every stat has a default geom.
+
+You might need to use the stat explicitly to:
+
+1. override the default stat
+
+
+```{r}
+
+diamonds |>
+  count(cut) |>
+  ggplot(aes(x = cut, y = n)) +
+  geom_bar(stat = "identity")
+
+```
+
+2. Override default mapping from transformed variables to aesthetics.
+
+For example, a bar chart of proportions instead of counts is possible like this:
+
+
+```{r}
+
+ggplot(diamonds, aes(x = cut, y = after_stat(prop), group = 1)) + 
+  geom_bar()
+
+```
+
+
+3. You might want to draw greater attention to the statistical transformation in your code. Here is an example with `stat_summary()`, which summarizes the `y` value for each unique `x` value plotted.
+
+```{r}
+
+ggplot(diamonds) + 
+  stat_summary(
+    aes(x = cut, y = depth),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )
+
+```
+
+
+
+## 9.6 Position adjustments
+
+```{r}
+
+
+```
+
+
+
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
+
+
+
+```{r}
+
+
+
+```
+
+
+
+```{r}
+
+
+
+```
+
