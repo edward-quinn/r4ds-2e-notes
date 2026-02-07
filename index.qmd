@@ -14,5 +14,7 @@ bibliography: professional_development.bib
 -   [Chapter 11 Notes](chapter_11_notes.qmd){.external target="_blank"}
 -   [Chapter 12 Notes](chapter_12_notes.qmd){.external target="_blank"}
 -   [Chapter 17 Notes](chapter_17_notes.qmd){.external target="_blank"}
+-   [Chapter 18 Notes](chapter_18_notes.qmd){.external target="_blank"}
+-   [Chapter 19 Notes](chapter_19_notes.qmd){.external target="_blank"}
 -   [Chapter 25 Notes](chapter_25_notes.qmd){.external target="_blank"}
 -   [Chapter 26 Notes](chapter_26_notes.qmd){.external target="_blank"}

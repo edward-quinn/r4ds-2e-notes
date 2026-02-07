@@ -1,0 +1,775 @@
+---
+title: "R for Data Science, 2nd Edition - Chapter 19 Notes"
+freeze: true
+format:
+    html:
+        toc: true
+        toc-title: Contents
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+# 19 Joins
+
+There are two main types of joins: mutating and filtering
+
+```{r}
+
+library(tidyverse)
+library(nycflights13)
+
+
+```
+
+
+## 19.2 Keys
+
+**Primary and foreign keys**. Primary keys uniquely identify an observation. A foreign key a variable or set of variables that corresponds to a primary key in another table.
+
+check that your primary key is unique:
+
+```{r}
+
+planes |> 
+  count(tailnum) |> 
+  filter(n > 1)
+#> # A tibble: 0 × 2
+#> # ℹ 2 variables: tailnum <chr>, n <int>
+
+weather |> 
+  count(time_hour, origin) |> 
+  filter(n > 1)
+#> # A tibble: 0 × 3
+#> # ℹ 3 variables: time_hour <dttm>, origin <chr>, n <int>
+
+```
+
+Should probably also check for missing values on primary keys:
+
+```{r}
+
+planes |> 
+  filter(is.na(tailnum))
+#> # A tibble: 0 × 9
+#> # ℹ 9 variables: tailnum <chr>, year <int>, type <chr>, manufacturer <chr>,
+#> #   model <chr>, engines <int>, seats <int>, speed <int>, engine <chr>
+
+weather |> 
+  filter(is.na(time_hour) | is.na(origin))
+#> # A tibble: 0 × 15
+#> # ℹ 15 variables: origin <chr>, year <int>, month <int>, day <int>,
+#> #   hour <int>, temp <dbl>, dewp <dbl>, humid <dbl>, wind_dir <dbl>, …
+
+```
+
+for the `flights` data frame, a compound primary key can be formed like so:
+
+```{r}
+
+
+flights |> 
+  count(time_hour, carrier, flight) |> 
+  filter(n > 1)
+#> # A tibble: 0 × 4
+#> # ℹ 4 variables: time_hour <dttm>, carrier <chr>, flight <int>, n <int>
+
+```
+
+If you don't have a clear primary key, you can use a surrogate:
+
+```{r}
+
+flights2 <- flights |> 
+  mutate(id = row_number(), .before = 1)
+flights2
+#> # A tibble: 336,776 × 20
+#>      id  year month   day dep_time sched_dep_time dep_delay arr_time
+#>   <int> <int> <int> <int>    <int>          <int>     <dbl>    <int>
+#> 1     1  2013     1     1      517            515         2      830
+#> 2     2  2013     1     1      533            529         4      850
+#> 3     3  2013     1     1      542            540         2      923
+#> 4     4  2013     1     1      544            545        -1     1004
+#> 5     5  2013     1     1      554            600        -6      812
+#> 6     6  2013     1     1      554            558        -4      740
+#> # ℹ 336,770 more rows
+#> # ℹ 12 more variables: sched_arr_time <int>, arr_delay <dbl>, …
+
+```
+
+**Mutating joins**.
+
+Make a more narrow data frame first.
+
+```{r}
+
+flights2 <- flights |> 
+  select(year, time_hour, origin, dest, tailnum, carrier)
+flights2
+#> # A tibble: 336,776 × 6
+#>    year time_hour           origin dest  tailnum carrier
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>  
+#> 1  2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA     
+#> 2  2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA     
+#> 3  2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA     
+#> 4  2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6     
+#> 5  2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL     
+#> 6  2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA     
+#> # ℹ 336,770 more rows
+
+```
+
+add airline information to flights
+
+```{r}
+
+flights2 |>
+  left_join(airlines)
+#> Joining with `by = join_by(carrier)`
+#> # A tibble: 336,776 × 7
+#>    year time_hour           origin dest  tailnum carrier name                
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>   <chr>               
+#> 1  2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA      United Air Lines In…
+#> 2  2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA      United Air Lines In…
+#> 3  2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA      American Airlines I…
+#> 4  2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6      JetBlue Airways     
+#> 5  2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL      Delta Air Lines Inc.
+#> 6  2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA      United Air Lines In…
+#> # ℹ 336,770 more rows
+
+```
+
+Find weather when each flight departed. Note the use of select within `left_join()`:
+
+```{r}
+
+
+flights2 |> 
+  left_join(weather |> select(origin, time_hour, temp, wind_speed))
+#> Joining with `by = join_by(time_hour, origin)`
+#> # A tibble: 336,776 × 8
+#>    year time_hour           origin dest  tailnum carrier  temp wind_speed
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>   <dbl>      <dbl>
+#> 1  2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA       39.0       12.7
+#> 2  2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA       39.9       15.0
+#> 3  2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA       39.0       15.0
+#> 4  2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6       39.0       15.0
+#> 5  2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL       39.9       16.1
+#> 6  2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA       39.0       12.7
+#> # ℹ 336,770 more rows
+
+```
+
+When no match is found for a row in `x`, the new variables get `NA` in the new columns.
+
+```{r}
+
+flights2 |> 
+  filter(tailnum == "N3ALAA") |> 
+  left_join(planes |> select(tailnum, type, engines, seats))
+#> Joining with `by = join_by(tailnum)`
+#> # A tibble: 63 × 9
+#>    year time_hour           origin dest  tailnum carrier type  engines seats
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>   <chr>   <int> <int>
+#> 1  2013 2013-01-01 06:00:00 LGA    ORD   N3ALAA  AA      <NA>       NA    NA
+#> 2  2013 2013-01-02 18:00:00 LGA    ORD   N3ALAA  AA      <NA>       NA    NA
+#> 3  2013 2013-01-03 06:00:00 LGA    ORD   N3ALAA  AA      <NA>       NA    NA
+#> 4  2013 2013-01-07 19:00:00 LGA    ORD   N3ALAA  AA      <NA>       NA    NA
+#> 5  2013 2013-01-08 17:00:00 JFK    ORD   N3ALAA  AA      <NA>       NA    NA
+#> 6  2013 2013-01-16 06:00:00 LGA    ORD   N3ALAA  AA      <NA>       NA    NA
+#> # ℹ 57 more rows
+
+
+```
+
+
+By default, `left_join()` uses all columns that appear in both data frames as the join key. But you can and should specify the joining keys:
+
+```{r}
+
+flights2 |> 
+  left_join(planes, join_by(tailnum))
+#> # A tibble: 336,776 × 14
+#>   year.x time_hour           origin dest  tailnum carrier year.y
+#>    <int> <dttm>              <chr>  <chr> <chr>   <chr>    <int>
+#> 1   2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA        1999
+#> 2   2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA        1998
+#> 3   2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA        1990
+#> 4   2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6        2012
+#> 5   2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL        1991
+#> 6   2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA        2012
+#> # ℹ 336,770 more rows
+#> # ℹ 7 more variables: type <chr>, manufacturer <chr>, model <chr>, …
+
+```
+
+
+This is short for `join_by(tailnum == tailnum)`. That's fine is the same variables have the same names across data frames. If the names are different, then you need to specify the equality of variables across different columns names in the `join_by()` argument.
+
+
+
+```{r}
+
+flights2 |> 
+  left_join(airports, join_by(dest == faa))
+#> # A tibble: 336,776 × 13
+#>    year time_hour           origin dest  tailnum carrier name                
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>   <chr>               
+#> 1  2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA      George Bush Interco…
+#> 2  2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA      George Bush Interco…
+#> 3  2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA      Miami Intl          
+#> 4  2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6      <NA>                
+#> 5  2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL      Hartsfield Jackson …
+#> 6  2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA      Chicago Ohare Intl  
+#> # ℹ 336,770 more rows
+#> # ℹ 6 more variables: lat <dbl>, lon <dbl>, alt <dbl>, tz <dbl>, …
+
+flights2 |> 
+  left_join(airports, join_by(origin == faa))
+#> # A tibble: 336,776 × 13
+#>    year time_hour           origin dest  tailnum carrier name               
+#>   <int> <dttm>              <chr>  <chr> <chr>   <chr>   <chr>              
+#> 1  2013 2013-01-01 05:00:00 EWR    IAH   N14228  UA      Newark Liberty Intl
+#> 2  2013 2013-01-01 05:00:00 LGA    IAH   N24211  UA      La Guardia         
+#> 3  2013 2013-01-01 05:00:00 JFK    MIA   N619AA  AA      John F Kennedy Intl
+#> 4  2013 2013-01-01 05:00:00 JFK    BQN   N804JB  B6      John F Kennedy Intl
+#> 5  2013 2013-01-01 06:00:00 LGA    ATL   N668DN  DL      La Guardia         
+#> 6  2013 2013-01-01 05:00:00 EWR    ORD   N39463  UA      Newark Liberty Intl
+#> # ℹ 336,770 more rows
+#> # ℹ 6 more variables: lat <dbl>, lon <dbl>, alt <dbl>, tz <dbl>, …
+
+```
+
+Older code may use `by` with a character vector to specify join keys. Prefer `join_by()`.
+
+
+**Filtering joins**. There are two types: **semi-joins** and **anti-joins**.
+
+**Semi-joins** keep all rows in `x` that have a match in `y`. Show just origin airports:
+
+```{r}
+
+airports |> 
+  semi_join(flights2, join_by(faa == origin))
+#> # A tibble: 3 × 8
+#>   faa   name                  lat   lon   alt    tz dst   tzone           
+#>   <chr> <chr>               <dbl> <dbl> <dbl> <dbl> <chr> <chr>           
+#> 1 EWR   Newark Liberty Intl  40.7 -74.2    18    -5 A     America/New_York
+#> 2 JFK   John F Kennedy Intl  40.6 -73.8    13    -5 A     America/New_York
+#> 3 LGA   La Guardia           40.8 -73.9    22    -5 A     America/New_York
+
+```
+
+**Anti-joins** are the opposite: they return all rows in `x` that don't have a match in `y`. These are useful for identifying implicit missing values.
+
+
+
+```{r}
+
+flights2 |> 
+  anti_join(airports, join_by(dest == faa)) |> 
+  distinct(dest)
+#> # A tibble: 4 × 1
+#>   dest 
+#>   <chr>
+#> 1 BQN  
+#> 2 SJU  
+#> 3 STT  
+#> 4 PSE
+
+```
+
+
+Find which `tailnum()` are missing from `planes`:
+
+
+```{r}
+
+flights2 |>
+  anti_join(planes, join_by(tailnum)) |> 
+  distinct(tailnum)
+#> # A tibble: 722 × 1
+#>   tailnum
+#>   <chr>  
+#> 1 N3ALAA 
+#> 2 N3DUAA 
+#> 3 N542MQ 
+#> 4 N730MQ 
+#> 5 N9EAMQ 
+#> 6 N532UA 
+#> # ℹ 716 more rows
+
+```
+
+Exercises 19.3.4 look especially useful to try out.
+
+## 19.4 How do joins work?
+
+
+## 19.5 Non-equi joins
+
+These are joins without a strict requirement of equality of keys. This makes keeping both keys used in the join more useful, since they may be slightly different. We could have done this in the earlier equi joins above:
+
+
+
+```{r}
+
+# x |> inner_join(y, join_by(key == key), keep = TRUE)
+# #> # A tibble: 2 × 4
+# #>   key.x val_x key.y val_y
+# #>   <dbl> <chr> <dbl> <chr>
+# #> 1     1 x1        1 y1   
+# #> 2     2 x2        2 y2
+
+```
+
+You can, for example, do matches like `x$key` > `y$key`.
+
+- Cross joins match every pair of rows.
+- Inequality joins use <, <=, >, and >= instead of ==.
+- Rolling joins are similar to inequality joins but only find the closest match.
+- Overlap joins are a special type of inequality join designed to work with ranges.
+
+Cross joins are the cartesian product of rows:
+
+```{r}
+
+df <- tibble(name = c("John", "Simon", "Tracy", "Max"))
+df |> cross_join(df)
+#> # A tibble: 16 × 2
+#>   name.x name.y
+#>   <chr>  <chr> 
+#> 1 John   John  
+#> 2 John   Simon 
+#> 3 John   Tracy 
+#> 4 John   Max   
+#> 5 Simon  John  
+#> 6 Simon  Simon 
+#> # ℹ 10 more rows
+
+```
+
+Inequality  joins can be used to generate all combinations, instead of all permutations:
+
+```{r}
+
+df <- tibble(id = 1:4, name = c("John", "Simon", "Tracy", "Max"))
+
+df |> inner_join(df, join_by(id < id))
+#> # A tibble: 6 × 4
+#>    id.x name.x  id.y name.y
+#>   <int> <chr>  <int> <chr> 
+#> 1     1 John       2 Simon 
+#> 2     1 John       3 Tracy 
+#> 3     1 John       4 Max   
+#> 4     2 Simon      3 Tracy 
+#> 5     2 Simon      4 Max   
+#> 6     3 Tracy      4 Max
+
+```
+
+Rolling joins are similar to inequality joins, but only give you the closest row that satisfies the inequality:
+
+**Rolling joins are particularly useful when you have two tables of dates that don’t perfectly line up and you want to find (e.g.) the closest date in table 1 that comes before (or after) some date in table 2.**
+
+Quarterly party planning for employee birthdays:
+
+```{r}
+
+parties <- tibble(
+  q = 1:4,
+  party = ymd(c("2022-01-10", "2022-04-04", "2022-07-11", "2022-10-03"))
+)
+
+
+```
+
+
+
+```{r}
+
+set.seed(123)
+employees <- tibble(
+  name = sample(babynames::babynames$name, 100),
+  birthday = ymd("2022-01-01") + (sample(365, 100, replace = TRUE) - 1)
+)
+employees
+#> # A tibble: 100 × 2
+#>   name     birthday  
+#>   <chr>    <date>    
+#> 1 Kemba    2022-01-22
+#> 2 Orean    2022-06-26
+#> 3 Kirstyn  2022-02-11
+#> 4 Amparo   2022-11-11
+#> 5 Belen    2022-03-25
+#> 6 Rayshaun 2022-01-11
+#> # ℹ 94 more rows
+
+```
+
+
+For each employee we want to find the last party date that comes before (or on) their birthday. We can express that with a rolling join. The `closest()` function takes this from an inequality join to a rolling join:
+
+
+```{r}
+
+employees |> 
+  left_join(parties, join_by(closest(birthday >= party)))
+#> # A tibble: 100 × 4
+#>   name     birthday       q party     
+#>   <chr>    <date>     <int> <date>    
+#> 1 Kemba    2022-01-22     1 2022-01-10
+#> 2 Orean    2022-06-26     2 2022-04-04
+#> 3 Kirstyn  2022-02-11     1 2022-01-10
+#> 4 Amparo   2022-11-11     4 2022-10-03
+#> 5 Belen    2022-03-25     1 2022-01-10
+#> 6 Rayshaun 2022-01-11     1 2022-01-10
+#> # ℹ 94 more rows
+
+```
+
+
+The problem with this is that folks with birthdays before January 10 don't get a party.
+
+**Overlap joins**. There are three helpers:
+
+- `between(x, y_lower, y_upper)` is short for x >= y_lower, x <= y_upper.
+- `within(x_lower, x_upper, y_lower, y_upper)` is short for x_lower >= y_lower, x_upper <= y_upper.
+- `overlaps(x_lower, x_upper, y_lower, y_upper)` is short for x_lower <= y_upper, x_upper >= y_lower.
+
+
+```{r}
+
+parties <- tibble(
+  q = 1:4,
+  party = ymd(c("2022-01-10", "2022-04-04", "2022-07-11", "2022-10-03")),
+  start = ymd(c("2022-01-01", "2022-04-04", "2022-07-11", "2022-10-03")),
+  end = ymd(c("2022-04-03", "2022-07-11", "2022-10-02", "2022-12-31"))
+)
+parties
+#> # A tibble: 4 × 4
+#>       q party      start      end       
+#>   <int> <date>     <date>     <date>    
+#> 1     1 2022-01-10 2022-01-01 2022-04-03
+#> 2     2 2022-04-04 2022-04-04 2022-07-11
+#> 3     3 2022-07-11 2022-07-11 2022-10-02
+#> 4     4 2022-10-03 2022-10-03 2022-12-31
+
+```
+
+Use a self-join to check the data entry quality:
+
+
+```{r}
+
+parties |> 
+  inner_join(parties, join_by(overlaps(start, end, start, end), q < q)) |> 
+  select(start.x, end.x, start.y, end.y)
+#> # A tibble: 1 × 4
+#>   start.x    end.x      start.y    end.y     
+#>   <date>     <date>     <date>     <date>    
+#> 1 2022-04-04 2022-07-11 2022-07-11 2022-10-02
+
+```
+
+There is an overlap. Fix:
+
+```{r}
+
+parties <- tibble(
+  q = 1:4,
+  party = ymd(c("2022-01-10", "2022-04-04", "2022-07-11", "2022-10-03")),
+  start = ymd(c("2022-01-01", "2022-04-04", "2022-07-11", "2022-10-03")),
+  end = ymd(c("2022-04-03", "2022-07-10", "2022-10-02", "2022-12-31"))
+)
+
+```
+
+Now assign a party
+
+```{r}
+
+employees |> 
+  inner_join(parties, join_by(between(birthday, start, end)), unmatched = "error")
+#> # A tibble: 100 × 6
+#>   name     birthday       q party      start      end       
+#>   <chr>    <date>     <int> <date>     <date>     <date>    
+#> 1 Kemba    2022-01-22     1 2022-01-10 2022-01-01 2022-04-03
+#> 2 Orean    2022-06-26     2 2022-04-04 2022-04-04 2022-07-10
+#> 3 Kirstyn  2022-02-11     1 2022-01-10 2022-01-01 2022-04-03
+#> 4 Amparo   2022-11-11     4 2022-10-03 2022-10-03 2022-12-31
+#> 5 Belen    2022-03-25     1 2022-01-10 2022-01-01 2022-04-03
+#> 6 Rayshaun 2022-01-11     1 2022-01-10 2022-01-01 2022-04-03
+#> # ℹ 94 more rows
+
+```
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+
+
+
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+

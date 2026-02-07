@@ -1,0 +1,269 @@
+---
+title: "R for Data Science, 2nd Edition - Chapter 18 Notes"
+freeze: true
+format:
+    html:
+        toc: true
+        toc-title: Contents
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+# 18 Missing values
+
+```{r}
+
+library(tidyverse)
+library(nycflights13)
+
+```
+
+
+## 18.2 Explicit missing values
+
+Creating or eliminating missing values.
+
+```{r}
+
+treatment <- tribble(
+  ~person,           ~treatment, ~response,
+  "Derrick Whitmore", 1,         7,
+  NA,                 2,         10,
+  NA,                 3,         NA,
+  "Katherine Burke",  1,         4
+)
+
+```
+
+You can fill in missing values with `tidyr::fill()`.
+
+```{r}
+
+treatment |>
+  fill(everything())
+#> # A tibble: 4 × 3
+#>   person           treatment response
+#>   <chr>                <dbl>    <dbl>
+#> 1 Derrick Whitmore         1        7
+#> 2 Derrick Whitmore         2       10
+#> 3 Derrick Whitmore         3       10
+#> 4 Katherine Burke          1        4
+
+```
+
+The default behavior of `fill()` is to use last observation carried forward, but this can be altered using the `.direction` argument.
+
+If missingness can be specified by a number, you can use `dplyr::coalesce()` to replace `NA` with the releveant number:
+
+```{r}
+
+x <- c(1, 4, 5, 7, NA)
+coalesce(x, 0)
+#> [1] 1 4 5 7 0
+
+```
+
+Going the other direciton, from some special value like 999 to `NA` can be handled upon reading data into R. If you can't do that, use `na_if()`.
+
+```{r}
+
+x <- c(1, 4, 5, 7, -99)
+na_if(x, -99)
+#> [1]  1  4  5  7 NA
+
+```
+
+## 18.3 Implicit missing values
+
+**Implicit** refers to the entire row of data being removed from the data frame, rather than **explicitly** filling each column in a given row with `NA`.
+
+```{r}
+
+stocks <- tibble(
+  year  = c(2020, 2020, 2020, 2020, 2021, 2021, 2021),
+  qtr   = c(   1,    2,    3,    4,    2,    3,    4),
+  price = c(1.88, 0.59, 0.35,   NA, 0.92, 0.17, 2.66)
+)
+
+```
+
+This dataset has two missing observations:
+
+The price in the fourth quarter of 2020 is explicitly missing, because its value is NA.
+
+The price for the first quarter of 2021 is implicitly missing, because it simply does not appear in the dataset.
+
+Moving between implicit and explicit missingness may be necessary.
+
+**Pivoting**. Pivoting wider makes implicit missingness explicit.
+
+```{r}
+
+stocks |>
+  pivot_wider(
+    names_from = qtr, 
+    values_from = price
+  )
+#> # A tibble: 2 × 5
+#>    year   `1`   `2`   `3`   `4`
+#>   <dbl> <dbl> <dbl> <dbl> <dbl>
+#> 1  2020  1.88  0.59  0.35 NA   
+#> 2  2021 NA     0.92  0.17  2.66
+
+```
+
+**Complete**. `tidyr::complete()` generates explicit missing values by defining the combination of rows that should exist. If we want all combinations of year and quarter to exist:
+
+```{r}
+
+stocks |>
+  complete(year, qtr)
+#> # A tibble: 8 × 3
+#>    year   qtr price
+#>   <dbl> <dbl> <dbl>
+#> 1  2020     1  1.88
+#> 2  2020     2  0.59
+#> 3  2020     3  0.35
+#> 4  2020     4 NA   
+#> 5  2021     1 NA   
+#> 6  2021     2  0.92
+#> # ℹ 2 more rows
+
+```
+
+You can also use `complete()` on an individual variable:
+
+```{r}
+
+stocks |>
+  complete(year = 2019:2021, qtr)
+#> # A tibble: 12 × 3
+#>    year   qtr price
+#>   <dbl> <dbl> <dbl>
+#> 1  2019     1 NA   
+#> 2  2019     2 NA   
+#> 3  2019     3 NA   
+#> 4  2019     4 NA   
+#> 5  2020     1  1.88
+#> 6  2020     2  0.59
+#> # ℹ 6 more rows
+
+```
+
+You can also use *joins* to reveal implicitly missing observations.
+
+`dplyr::anti_join(x,y)` selects only the rows in `x` that don't have a match in `y`.
+
+```{r}
+
+flights |> 
+  distinct(faa = dest) |> 
+  anti_join(airports)
+#> Joining with `by = join_by(faa)`
+#> # A tibble: 4 × 1
+#>   faa  
+#>   <chr>
+#> 1 BQN  
+#> 2 SJU  
+#> 3 STT  
+#> 4 PSE
+
+```
+
+
+
+```{r}
+
+flights |> 
+  distinct(tailnum) |> 
+  anti_join(planes)
+#> Joining with `by = join_by(tailnum)`
+#> # A tibble: 722 × 1
+#>   tailnum
+#>   <chr>  
+#> 1 N3ALAA 
+#> 2 N3DUAA 
+#> 3 N542MQ 
+#> 4 N730MQ 
+#> 5 N9EAMQ 
+#> 6 N532UA 
+#> # ℹ 716 more rows
+
+```
+
+## 18.4 Factors and empty groups
+
+A type of missingness is an empty group, or a factor with a level containing zero observations.
+
+```{r}
+
+health <- tibble(
+  name   = c("Ikaia", "Oletta", "Leriah", "Dashay", "Tresaun"),
+  smoker = factor(c("no", "no", "no", "no", "no"), levels = c("yes", "no")),
+  age    = c(34, 88, 75, 47, 56),
+)
+
+```
+
+`count()` automatically removes the level with 0 observations:
+
+```{r}
+
+health |> count(smoker)
+#> # A tibble: 1 × 2
+#>   smoker     n
+#>   <fct>  <int>
+#> 1 no         5
+
+```
+
+but we can keep it with `.drop = FALSE`.
+
+```{r}
+
+health |> count(smoker, .drop = FALSE)
+#> # A tibble: 2 × 2
+#>   smoker     n
+#>   <fct>  <int>
+#> 1 yes        0
+#> 2 no         5
+
+```
+
+The same behavior applies to ggplot2's discrete axes:
+
+```{r}
+
+ggplot(health, aes(x = smoker)) +
+  geom_bar() +
+  scale_x_discrete()
+
+ggplot(health, aes(x = smoker)) +
+  geom_bar() +
+  scale_x_discrete(drop = FALSE)
+
+```
+
+The same behavior applies to `group_by()`.
+
+```{r}
+
+health |> 
+  group_by(smoker, .drop = FALSE) |> 
+  summarize(
+    n = n(),
+    mean_age = mean(age),
+    min_age = min(age),
+    max_age = max(age),
+    sd_age = sd(age)
+  )
+#> # A tibble: 2 × 6
+#>   smoker     n mean_age min_age max_age sd_age
+#>   <fct>  <int>    <dbl>   <dbl>   <dbl>  <dbl>
+#> 1 yes        0      NaN     Inf    -Inf   NA  
+#> 2 no         5       60      34      88   21.6
+
+```
+
