@@ -1,0 +1,533 @@
+---
+title: "R for Data Science, 2nd Edition - Chapter 11 Notes"
+freeze: true
+format:
+    html:
+        toc: true
+        toc-title: Contents
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+# 11 Communication
+
+Here we go from exploratory to expository graphs.
+
+They recommend `The Truthful Art` by Albert Cairo as a guide for data visualization.
+
+```{r}
+
+library(tidyverse)
+library(scales)
+library(ggrepel)
+library(patchwork)
+
+```
+
+
+
+## 11.2 Labels
+
+Labels help to make a chart expository.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  labs(
+    x = "Engine displacement (L)",
+    y = "Highway fuel economy (mpg)",
+    color = "Car type",
+    title = "Fuel efficiency generally decreases with engine size",
+    subtitle = "Two seaters (sports cars) are an exception because of their light weight",
+    caption = "Data from fueleconomy.gov"
+  )
+
+```
+
+## 11.3 Annotations
+
+Sometimes it's helpful to label individual observations or groups of observations. You can use `geom_text()`, which functions like `geom_point()`, but it has an additional aesthetic: `label`, which is for textual labels to add to your plot.
+
+```{r}
+
+label_info <- mpg |>
+  group_by(drv) |>
+  arrange(desc(displ)) |>
+  slice_head(n = 1) |>
+  mutate(
+    drive_type = case_when(
+      drv == "f" ~ "front-wheel drive",
+      drv == "r" ~ "rear-wheel drive",
+      drv == "4" ~ "4-wheel drive"
+    )
+  ) |>
+  select(displ, hwy, drv, drive_type)
+
+label_info
+#> # A tibble: 3 × 4
+#> # Groups:   drv [3]
+#>   displ   hwy drv   drive_type       
+#>   <dbl> <int> <chr> <chr>            
+#> 1   6.5    17 4     4-wheel drive    
+#> 2   5.3    25 f     front-wheel drive
+#> 3   7      24 r     rear-wheel drive
+
+```
+
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(se = FALSE) +
+  geom_text(
+    data = label_info, 
+    aes(x = displ, y = hwy, label = drive_type),
+    fontface = "bold", size = 5, hjust = "right", vjust = "bottom"
+  ) +
+  theme(legend.position = "none")
+#> `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+```
+
+
+To prevent labels from overlapping with one another and/or with the data, use `geom_label_repel()` from the `ggrepel` package.
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(se = FALSE) +
+  geom_label_repel(
+    data = label_info, 
+    aes(x = displ, y = hwy, label = drive_type),
+    fontface = "bold", size = 5, nudge_y = 2
+  ) +
+  theme(legend.position = "none")
+#> `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+```
+
+Another handy use case for `geom_text_repel()` is to highlight outliers.
+
+```{r}
+
+potential_outliers <- mpg |>
+  filter(hwy > 40 | (hwy > 20 & displ > 5))
+  
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_text_repel(data = potential_outliers, aes(label = model)) +
+  geom_point(data = potential_outliers, color = "red") +
+  geom_point(
+    data = potential_outliers,
+    color = "red", size = 3, shape = "circle open"
+  )
+
+```
+
+More annotation ideas:
+
+Use `geom_hline()` and `geom_vline()` to add reference lines. We often make them thick (`linewidth = 2`) and white (`color = white`), and draw them underneath the primary data layer. That makes them easy to see, without drawing attention away from the data.
+
+Use `geom_rect()` to draw a rectangle around points of interest. The boundaries of the rectangle are defined by aesthetics `xmin`, `xmax`, `ymin`, `ymax.` Alternatively, look into the `ggforce` package, specifically `geom_mark_hull()`, which allows you to annotate subsets of points with hulls.
+
+Use `geom_segment()` with the arrow argument to draw attention to a point with an arrow. Use aesthetics `x` and `y` to define the starting location, and `xend` and `yend` to define the end location.
+
+Use `annotate()` to highlight just one or two points or ideas.
+
+```{r}
+
+trend_text <- "Larger engine sizes tend to have lower fuel economy." |>
+  str_wrap(width = 30)
+trend_text
+#> [1] "Larger engine sizes tend to\nhave lower fuel economy."
+
+```
+
+Note the annotaiton is accomplised with a `label` geom and a `segment` geom, which are both called within the `annotate` function, in two separate calls to the function.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  annotate(
+    geom = "label", x = 3.5, y = 38,
+    label = trend_text,
+    hjust = "left", color = "red"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 3, y = 35, xend = 5, yend = 25, color = "red",
+    arrow = arrow(type = "closed")
+  )
+
+```
+
+
+## 11.4 Scales
+
+Control how the aesthetic mappings manifest visually.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class))
+
+```
+
+Behind the scenes, this is what happens:
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  scale_x_continuous() +
+  scale_y_continuous() +
+  scale_color_discrete() # chooses colors for each of the class of cars
+
+```
+
+You may want to access these `scale` functions to change things like breaks on the axes, or the key labels on the legend.
+
+You might want to replace the scale altogether.
+
+**Axis ticks and legend keys**.
+
+Collectively, axes and legends are called **guides**. Two arguments affect the appearance of the ticks on the axes and keys on the legend: `breaks` and `labels`.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(15, 40, by = 5)) 
+
+```
+
+`labels` can be set to `NULL`, or a vector of length `breaks`, or in the case of a categorical variables, a named list with mappings to existing level names.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy, color = drv)) +
+  geom_point() +
+  scale_x_continuous(labels = NULL) +
+  scale_y_continuous(labels = NULL) +
+  scale_color_discrete(labels = c("4" = "4-wheel", "f" = "front", "r" = "rear"))
+
+```
+
+The `labels` argument can be combined with the `scales` package. Note that the `breaks` argument is on the original scale.
+
+```{r}
+
+# Left
+ggplot(diamonds, aes(x = price, y = cut)) +
+  geom_boxplot(alpha = 0.05) +
+  scale_x_continuous(labels = label_dollar())
+
+# Right
+ggplot(diamonds, aes(x = price, y = cut)) +
+  geom_boxplot(alpha = 0.05) +
+  scale_x_continuous(
+    labels = label_dollar(scale = 1/1000, suffix = "K"), 
+    breaks = seq(1000, 19000, by = 6000)
+  )
+
+```
+
+
+`label_percent()` is handy when visualizing proportions.
+
+
+```{r}
+
+ggplot(diamonds, aes(x = cut, fill = clarity)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(name = "Percentage", labels = label_percent())
+
+```
+
+
+Custom `breaks` arguments can be useful when there isn't much data and you want to highlight specific data points.
+
+
+```{r}
+
+presidential |>
+  mutate(id = 33 + row_number()) |>
+  ggplot(aes(x = start, y = id)) +
+  geom_point() +
+  geom_segment(aes(xend = end, yend = id)) +
+  scale_x_date(name = NULL, breaks = presidential$start, date_labels = "'%y")
+
+```
+
+
+
+**Legend layout**.
+
+Use the `theme()` setting `legend_position()`. Also use `guides`.
+
+```{r}
+
+base <- ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class))
+
+base + theme(legend.position = "right") # the default
+base + theme(legend.position = "left")
+base + 
+  theme(legend.position = "top") +
+  guides(color = guide_legend(nrow = 3))
+base + 
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 3))
+
+```
+
+
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 2, override.aes = list(size = 4))) # aes override
+#> `geom_smooth()` using method = 'loess' and formula = 'y ~ x'
+
+```
+
+
+**Replacing a scale**. 
+
+```{r}
+
+# Left
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_bin2d()
+#> `stat_bin2d()` using `bins = 30`. Pick better value `binwidth`.
+
+# Right
+ggplot(diamonds, aes(x = log10(carat), y = log10(price))) +
+  geom_bin2d()
+#> `stat_bin2d()` using `bins = 30`. Pick better value `binwidth`.
+
+```
+
+
+`scale_color_brewer()` allows access to palettes that can be seen by people with color blindness.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv))
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv)) +
+  scale_color_brewer(palette = "Set1")
+
+```
+
+
+Redundant shape mapping also improves accessibility
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv, shape = drv)) +
+  scale_color_brewer(palette = "Set1")
+
+```
+
+
+Specify mapping between colors and variables using `scale_color_manual()`.
+
+```{r}
+
+presidential |>
+  mutate(id = 33 + row_number()) |>
+  ggplot(aes(x = start, y = id, color = party)) +
+  geom_point() +
+  geom_segment(aes(xend = end, yend = id)) +
+  scale_color_manual(values = c(Republican = "#E81B23", Democratic = "#00AEF3"))
+
+```
+
+Viridis color scales are available, and also accessible for continuous, discrete, and binned palettes.
+
+```{r}
+
+df <- tibble(
+  x = rnorm(10000),
+  y = rnorm(10000)
+)
+
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  coord_fixed() +
+  labs(title = "Default, continuous", x = NULL, y = NULL)
+
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  coord_fixed() +
+  scale_fill_viridis_c() +
+  labs(title = "Viridis, continuous", x = NULL, y = NULL)
+
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  coord_fixed() +
+  scale_fill_viridis_b() +
+  labs(title = "Viridis, binned", x = NULL, y = NULL)
+
+```
+
+You can zoom in on a portion of the plot using `coord_cartesian()`.
+
+```{r}
+
+# Left
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv)) +
+  geom_smooth() +
+  scale_x_continuous(limits = c(5, 6)) +
+  scale_y_continuous(limits = c(10, 25))
+
+# Right
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = drv)) +
+  geom_smooth() +
+  coord_cartesian(xlim = c(5, 6), ylim = c(10, 25))
+
+```
+
+```{r}
+
+suv <- mpg |> filter(class == "suv")
+compact <- mpg |> filter(class == "compact")
+
+# Left
+ggplot(suv, aes(x = displ, y = hwy, color = drv)) +
+  geom_point()
+
+# Right
+ggplot(compact, aes(x = displ, y = hwy, color = drv)) +
+  geom_point()
+
+```
+
+
+Enforcing common scale limits across plots to enhance comparison.
+
+```{r}
+
+x_scale <- scale_x_continuous(limits = range(mpg$displ))
+y_scale <- scale_y_continuous(limits = range(mpg$hwy))
+col_scale <- scale_color_discrete(limits = unique(mpg$drv))
+
+# Left
+ggplot(suv, aes(x = displ, y = hwy, color = drv)) +
+  geom_point() +
+  x_scale +
+  y_scale +
+  col_scale
+
+# Right
+ggplot(compact, aes(x = displ, y = hwy, color = drv)) +
+  geom_point() +
+  x_scale +
+  y_scale +
+  col_scale
+
+```
+
+
+
+## 11.5 Themes
+
+Customize non-data elements with a theme.
+
+```{r}
+
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_bw()
+
+```
+
+Create your own themes, use those included in `ggplot2` or use extension packages like `ggthemes`.
+
+## 11.6 Layout
+
+The `+` operator in the `patchwork` package places two plots next to each other.
+
+```{r}
+
+p1 <- ggplot(mpg, aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  labs(title = "Plot 1")
+p2 <- ggplot(mpg, aes(x = drv, y = hwy)) + 
+  geom_boxplot() + 
+  labs(title = "Plot 2")
+p1 + p2
+
+```
+
+
+More complex layouts with `|` and `/`. 
+
+```{r}
+
+p3 <- ggplot(mpg, aes(x = cty, y = hwy)) + 
+  geom_point() + 
+  labs(title = "Plot 3")
+(p1 | p3) / p2
+
+```
+
+
+
+```{r}
+
+p1 <- ggplot(mpg, aes(x = drv, y = cty, color = drv)) + 
+  geom_boxplot(show.legend = FALSE) + 
+  labs(title = "Plot 1")
+
+p2 <- ggplot(mpg, aes(x = drv, y = hwy, color = drv)) + 
+  geom_boxplot(show.legend = FALSE) + 
+  labs(title = "Plot 2")
+
+p3 <- ggplot(mpg, aes(x = cty, color = drv, fill = drv)) + 
+  geom_density(alpha = 0.5) + 
+  labs(title = "Plot 3")
+
+p4 <- ggplot(mpg, aes(x = hwy, color = drv, fill = drv)) + 
+  geom_density(alpha = 0.5) + 
+  labs(title = "Plot 4")
+
+p5 <- ggplot(mpg, aes(x = cty, y = hwy, color = drv)) + 
+  geom_point(show.legend = FALSE) + 
+  facet_wrap(~drv) +
+  labs(title = "Plot 5")
+
+(guide_area() / (p1 + p2) / (p3 + p4) / p5) +
+  plot_annotation(
+    title = "City and highway mileage for cars with different drive trains",
+    caption = "Source: https://fueleconomy.gov."
+  ) +
+  plot_layout(
+    guides = "collect",
+    heights = c(1, 3, 2, 4)
+    ) &
+  theme(legend.position = "top")
+
+```
+
+
+
