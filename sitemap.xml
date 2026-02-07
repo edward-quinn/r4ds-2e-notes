@@ -2,11 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://edward-quinn.github.io/r4ds-2e-notes/index.html</loc>
-    <lastmod>2026-02-07T11:32:19.163Z</lastmod>
+    <lastmod>2026-02-07T13:30:07.300Z</lastmod>
   </url>
   <url>
     <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_25_notes.html</loc>
     <lastmod>2026-02-01T15:29:51.283Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_18_notes.html</loc>
+    <lastmod>2026-02-07T13:29:37.309Z</lastmod>
   </url>
   <url>
     <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_12_notes.html</loc>
@@ -31,6 +35,10 @@
   <url>
     <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_17_notes.html</loc>
     <lastmod>2026-02-06T22:02:37.917Z</lastmod>
+  </url>
+  <url>
+    <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_19_notes.html</loc>
+    <lastmod>2026-02-07T16:31:46.656Z</lastmod>
   </url>
   <url>
     <loc>https://edward-quinn.github.io/r4ds-2e-notes/chapter_26_notes.html</loc>
